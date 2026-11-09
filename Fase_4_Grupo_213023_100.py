@@ -1,14 +1,13 @@
-#Aqui se realizara el trabajo colaborativo de la fase 4 del curso de programación del grupo 213023_100
+## PARTICIPANTE 1: JENIFER ALEXANDRA SANCHEZ VARGAS
 
-# PARTICIPANTE 1: JENIFER ALEXANDRA SANCHEZ VARGAS
-
+# Librerías necesarias para el funcionamiento inicial del sistema.
 import tkinter as tk
 from tkinter import ttk, messagebox
 from abc import ABC, abstractmethod
 import logging
 import re
 
-# Registro de eventos y errores
+# CONFIGURACIÓN DEL ARCHIVO DE LOGS
 logging.basicConfig(
     filename="sistema.log",
     level=logging.INFO,
@@ -16,25 +15,31 @@ logging.basicConfig(
     encoding="utf-8"
 )
 
-# Excepciones personalizadas
+# EXCEPCIONES PERSONALIZADAS
 class ErrorSistema(Exception):
+    """Excepción general utilizada por el sistema."""
     pass
 
 class ErrorValidacion(ErrorSistema):
+    """Se genera cuando un dato ingresado no es válido."""
     pass
 
 class ErrorCliente(ErrorSistema):
+    """Se genera cuando ocurre un problema relacionado con un cliente."""
     pass
 
 class ErrorServicio(ErrorSistema):
+    """Se utilizará para los errores relacionados con servicios."""
     pass
 
 class ErrorReserva(ErrorSistema):
+    """Se utilizará para los errores relacionados con reservas."""
     pass
 
+# (Estructura base, Excepciones, Clase Entidad, Cliente e Interfaz Gráfica)
 
-# Clase abstracta general
 class Entidad(ABC):
+    """Clase abstracta que representa una entidad general del sistema."""
     def __init__(self, identificacion):
         self._identificacion = self.validar_identificacion(identificacion)
 
@@ -45,13 +50,12 @@ class Entidad(ABC):
     @staticmethod
     def validar_identificacion(identificacion):
         identificacion = str(identificacion).strip()
-
+        if not identificacion:
+            raise ErrorValidacion("La identificación no puede estar vacía.")
         if not identificacion.isdigit():
             raise ErrorValidacion("La identificación debe contener solo números.")
-
         if not 5 <= len(identificacion) <= 15:
             raise ErrorValidacion("La identificación debe tener entre 5 y 15 dígitos.")
-
         return identificacion
 
     @abstractmethod
@@ -59,62 +63,61 @@ class Entidad(ABC):
         pass
 
 
-# Clase Cliente
 class Cliente(Entidad):
+    """Representa un cliente de Software FJ."""
     def __init__(self, identificacion, nombre, correo, telefono):
         super().__init__(identificacion)
         self.nombre = nombre
         self.correo = correo
         self.telefono = telefono
-        logging.info(f"Cliente registrado: {self.identificacion}")
+        logging.info(f"Cliente registrado correctamente: {self._identificacion}")
 
     @property
     def nombre(self):
         return self._nombre
 
     @nombre.setter
-    def nombre(self, valor):
-        valor = str(valor).strip()
-
-        if len(valor) < 3 or not all(c.isalpha() or c.isspace() for c in valor):
-            raise ErrorValidacion("Ingrese un nombre válido.")
-
-        self._nombre = valor.title()
+    def nombre(self, nombre):
+        nombre = str(nombre).strip()
+        if not nombre:
+            logging.error("Intento de registrar un nombre vacío.")
+            raise ErrorValidacion("El nombre del cliente no puede estar vacío.")
+        if len(nombre) < 3:
+            logging.error(f"Nombre demasiado corto: {nombre}")
+            raise ErrorValidacion("El nombre del cliente debe contener al menos 3 caracteres.")
+        if not all(caracter.isalpha() or caracter.isspace() for caracter in nombre):
+            logging.error(f"Nombre con caracteres no permitidos: {nombre}")
+            raise ErrorValidacion("El nombre del cliente solo puede contener letras y espacios.")
+        self._nombre = nombre.title()
 
     @property
     def correo(self):
         return self._correo
 
     @correo.setter
-    def correo(self, valor):
-        valor = str(valor).strip().lower()
-
-        if not re.fullmatch(r"[\w.-]+@[\w.-]+\.\w+", valor):
+    def correo(self, correo):
+        correo = str(correo).strip().lower()
+        if not re.fullmatch(r"[\w.-]+@[\w.-]+\.\w+", correo):
+            logging.error(f"Correo electrónico inválido: {correo}")
             raise ErrorValidacion("Ingrese un correo electrónico válido.")
-
-        self._correo = valor
+        self._correo = correo
 
     @property
     def telefono(self):
         return self._telefono
 
     @telefono.setter
-    def telefono(self, valor):
-        valor = str(valor).strip()
-
-        if not valor.isdigit() or not 7 <= len(valor) <= 10:
+    def telefono(self, telefono):
+        telefono = str(telefono).strip()
+        if not telefono.isdigit() or not 7 <= len(telefono) <= 10:
+            logging.error(f"Teléfono inválido: {telefono}")
             raise ErrorValidacion("El teléfono debe tener entre 7 y 10 números.")
-
-        self._telefono = valor
+        self._telefono = telefono
 
     def mostrar_informacion(self):
-        return (
-            f"{self.identificacion} | {self.nombre} | "
-            f"{self.correo} | {self.telefono}"
-        )
+        return f"ID: {self.identificacion} | Nombre: {self.nombre} | Correo: {self.correo} | Teléfono: {self.telefono}"
 
 
-# Interfaz gráfica Software FJ
 class AplicacionSoftwareFJ:
     def __init__(self, ventana):
         self.ventana = ventana
@@ -167,7 +170,6 @@ class AplicacionSoftwareFJ:
             fg="gray"
         ).pack(pady=5)
 
-    # Registro de clientes
     def crear_clientes(self):
         ttk.Label(
             self.tab_clientes,
@@ -189,7 +191,6 @@ class AplicacionSoftwareFJ:
             ttk.Label(formulario, text=campo + ":").grid(
                 row=fila, column=0, padx=10, pady=7, sticky="w"
             )
-
             entrada = ttk.Entry(formulario, width=40)
             entrada.grid(row=fila, column=1, padx=10, pady=7)
             self.campos[campo] = entrada
@@ -258,7 +259,6 @@ class AplicacionSoftwareFJ:
                 "No fue posible completar el registro."
             )
 
-    # Sección de servicios
     def crear_servicios(self):
         ttk.Label(
             self.tab_servicios,
@@ -282,7 +282,6 @@ class AplicacionSoftwareFJ:
             text="Módulo pendiente de integración."
         ).pack(pady=15)
 
-    # Sección de reservas
     def crear_reservas(self):
         ttk.Label(
             self.tab_reservas,
@@ -300,7 +299,6 @@ class AplicacionSoftwareFJ:
             text="Módulo pendiente de integración."
         ).pack(pady=10)
 
-    # Consulta de eventos y errores
     def consultar_logs(self):
         ventana_logs = tk.Toplevel(self.ventana)
         ventana_logs.title("Registros del sistema")
@@ -318,22 +316,116 @@ class AplicacionSoftwareFJ:
 
         texto.config(state="disabled")
 
+# PARTICIPANTE 2: JULIAN CAMILO HIDALGO CALIZ
+# (Módulo de Servicios, Clases Abstractas e Hijas con Polimorfismo)
 
-# Ejecución de la aplicación
+class Servicio(ABC):
+    """Clase abstracta que representa un servicio general ofrecido por Software FJ."""
+    def __init__(self, codigo_servicio, nombre_servicio, tarifa_base):
+        self._codigo_servicio = self.validar_codigo(codigo_servicio)
+        self._nombre_servicio = nombre_servicio
+        self._tarifa_base = self.validar_tarifa(tarifa_base)
+
+    @property
+    def codigo_servicio(self):
+        return self._codigo_servicio
+
+    @property
+    def nombre_servicio(self):
+        return self._nombre_servicio
+
+    @property
+    def tarifa_base(self):
+        return self._tarifa_base
+
+    @staticmethod
+    def validar_codigo(codigo):
+        codigo = str(codigo).strip()
+        if not codigo:
+            logging.error("Código de servicio vacío.")
+            raise ErrorServicio("El código del servicio no puede estar vacío.")
+        return codigo
+
+    @staticmethod
+    def validar_tarifa(tarifa):
+        try:
+            t = float(tarifa)
+            if t < 0:
+                raise ValueError()
+            return t
+        except ValueError:
+            logging.error(f"Tarifa de servicio inválida: {tarifa}")
+            raise ErrorServicio("La tarifa base debe ser un valor numérico positivo.")
+
+    @abstractmethod
+    def calcular_costo(self, *args, **kwargs):
+        """Método abstracto para el cálculo de costos (Polimorfismo)."""
+        pass
+
+    @abstractmethod
+    def mostrar_detalle(self):
+        """Método abstracto para describir el servicio."""
+        pass
+
+
+class ReservaSalas(Servicio):
+    """Servicio especializado en la reserva de salas."""
+    def __init__(self, codigo, tarifa_base, capacidad_personas):
+        super().__init__(codigo, "Reserva de Salas", tarifa_base)
+        self.capacidad_personas = capacidad_personas
+
+    def calcular_costo(self, horas, descuento_porcentaje=0):
+        if horas <= 0:
+            raise ErrorServicio("Las horas de reserva deben ser mayores a cero.")
+        subtotal = self.tarifa_base * horas
+        descuento = subtotal * (descuento_porcentaje / 100)
+        total = subtotal - descuento
+        logging.info(f"Costo calculado (Reserva Salas) [{self.codigo_servicio}]: ${total}")
+        return total
+
+    def mostrar_detalle(self):
+        return f"Sala [{self.codigo_servicio}] - Tarifa/Hora: ${self.tarifa_base} - Capacidad: {self.capacidad_personas} pers."
+
+
+class AlquilerEquipos(Servicio):
+    """Servicio especializado en alquiler de equipos tecnológicos."""
+    def __init__(self, codigo, tarifa_base, tipo_equipo):
+        super().__init__(codigo, "Alquiler de Equipos", tarifa_base)
+        self.tipo_equipo = tipo_equipo
+
+    def calcular_costo(self, dias, incluye_seguro=False):
+        if dias <= 0:
+            raise ErrorServicio("Los días de alquiler deben ser mayores a cero.")
+        subtotal = self.tarifa_base * dias
+        seguro = 20000 if incluye_seguro else 0
+        total = subtotal + seguro
+        logging.info(f"Costo calculado (Alquiler Equipos) [{self.codigo_servicio}]: ${total}")
+        return total
+
+    def mostrar_detalle(self):
+        return f"Equipo [{self.codigo_servicio}] ({self.tipo_equipo}) - Tarifa/Día: ${self.tarifa_base}"
+
+
+class AsesoriasEspecializadas(Servicio):
+    """Servicio especializado en asesorías profesionales."""
+    def __init__(self, codigo, tarifa_base, area_especialidad):
+        super().__init__(codigo, "Asesorías Especializadas", tarifa_base)
+        self.area_especialidad = area_especialidad
+
+    def calcular_costo(self, sesiones, impuesto_iva=0.19):
+        if sesiones <= 0:
+            raise ErrorServicio("El número de sesiones debe ser mayor a cero.")
+        subtotal = self.tarifa_base * sesiones
+        total = subtotal * (1 + impuesto_iva)
+        logging.info(f"Costo calculado (Asesorías) [{self.codigo_servicio}]: ${total}")
+        return total
+
+    def mostrar_detalle(self):
+        return f"Asesoría [{self.codigo_servicio}] en {self.area_especialidad} - Tarifa/Sesión: ${self.tarifa_base}"
+
+
+# Ejecución de la aplicación principal
 if __name__ == "__main__":
     ventana = tk.Tk()
     aplicacion = AplicacionSoftwareFJ(ventana)
     ventana.mainloop()
-
-
-
-# PARTICIPANTE 2: XXXXXXXXXXXXX
-
-
-# PARTICIPANTE 3: XXXXXXXXXXXXX
-
-
-# PARTICIPANTE 4: XXXXXXXXXXXXX
-
-
-# PARTICIPANTE 5: XXXXXXXXXXXXX
